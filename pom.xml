@@ -20,7 +20,7 @@
 
   <groupId>org.kiji.avro</groupId>
   <artifactId>kiji-avro</artifactId>
-  <version>1.1.2-cdh4-SNAPSHOT</version>
+  <version>1.1.2-hdp-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>kiji-avro</name>
@@ -99,7 +99,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>2.0.0-mr1-cdh4.1.2</version>
+      <version>1.0.3</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
@@ -109,11 +109,13 @@
         </exclusion>
       </exclusions>
     </dependency>
+  <!--
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>2.0.0-mr1-cdh4.1.2</version>
     </dependency>
+  -->
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>

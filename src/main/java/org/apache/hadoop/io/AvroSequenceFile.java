@@ -102,8 +102,11 @@ public final class AvroSequenceFile {
    * A writer for an uncompressed SequenceFile that supports Avro data.
    */
   public static class Writer extends SequenceFile.Writer {
-    Writer(Configuration conf, Option[] opts) throws IOException {
-      super(conf, opts);
+    Writer(Configuration conf, Options opts) throws IOException {
+      super(opts.getFileSystem(), opts.getConfigurationWithAvroSerialization(),
+          opts.getOutputPath(), opts.getKeyClass(), opts.getValueClass(),
+          opts.getBufferSizeBytes(), opts.getReplicationFactor(), opts.getBlockSizeBytes(),
+          opts.getProgressable(), opts.getMetadataWithAvroSchemas());
     }
 
     /**
