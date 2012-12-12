@@ -1,5 +1,5 @@
-odiago-avro
-===========
+kiji-avro
+=========
 
 Extensions to the [Apache Avro](http://avro.apache.org) project for
 working with [Apache Hadoop](http://hadoop.apache.org).  Many of the
@@ -18,30 +18,22 @@ features not part of the Avro core.
 
 ### How to build
 
-To build `target/odiago-avro-${project.version}.jar` run:
+To build `target/kiji-avro-${project.version}.jar` run:
 
     mvn package
 
 
-### Documentation
-
-* [Java API (Javadoc) 1.1.0-cdh4](http://wibidata.github.com/odiago-avro/1.1.0-cdh4/apidocs/)
-* [Java API (Javadoc) 1.0.7-cdh3](http://wibidata.github.com/odiago-avro/1.0.7-cdh3/apidocs/)
-* [Java API (Javadoc) 1.0.6](http://wibidata.github.com/odiago-avro/1.0.6/apidocs/)
-* [Java API (Javadoc) 1.0.5](http://wibidata.github.com/odiago-avro/1.0.5/apidocs/)
-
-
 ### Avro versions supported
 
-For avro-1.6.x and earlier, use odiago-avro 1.0.6. As of avro-1.7.0,
-the odiago-avro project has been included in avro-mapred-1.7.0 as part
-of Apache Avro's release.
+For avro-1.6.x and earlier, use odiago-avro 1.0.6. (This project used to be
+called odiago-avro.) As of avro-1.7.0, the kiji-avro project has been included
+in avro-mapred-1.7.0 as part of Apache Avro's release.
 
 The Apache Avro project is currently only configured to release
 avro-mapred-1.7.x compiled against CDH3 (Hadoop 0.20). To additionally
-support CDH4 (Hadoop 2.0), the odiago-avro project maintains only the
+support CDH4 (Hadoop 2.0), the kiji-avro project maintains only the
 code that is affected by the changes in Hadoop 2.0. Therefore, there
-are two branches of odiago-avro code and releases as of odiago-avro-1.0.7:
+are two branches of kiji-avro code and releases as of v1.0.7:
 
-* master: odiago-avro-1.0.7-cdh4
+* master: kiji-avro-1.0.8-cdh4
 * cdh3: odiago-avro-1.0.7-cdh3

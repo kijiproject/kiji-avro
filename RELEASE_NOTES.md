@@ -1,4 +1,4 @@
-Release Notes: odiago-avro
+Release Notes: kiji-avro
 ==========================
 
 ### Version 1.0.6
