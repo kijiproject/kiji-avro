@@ -17,7 +17,10 @@
 
 package org.kiji.avro.mapreduce;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +32,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.hadoop.io.AvroKeyValue;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -39,7 +43,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.reduce.IntSumReducer;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -75,11 +79,21 @@ public class TestKeyValueWordCount {
     }
   }
 
+  private Configuration mConf;
+
+  @Before
+  public final void setup() {
+    mConf = new Configuration();
+    mConf.set("fs.defaultFS", "file:///");
+    mConf.set("mapred.job.tracker", "local");
+  }
+
   @Test
   public void testKeyValueMapReduce()
       throws ClassNotFoundException, IOException, InterruptedException, URISyntaxException {
     // Configure a word count job over our test input file.
-    Job job = new Job();
+    final Job job = new Job(mConf);
+
     FileInputFormat.setInputPaths(job, new Path(getClass()
             .getResource("/org/apache/avro/mapreduce/mapreduce-test-input.txt")
             .toURI().toString()));

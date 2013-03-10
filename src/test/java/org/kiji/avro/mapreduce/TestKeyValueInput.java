@@ -34,6 +34,7 @@ import org.apache.avro.mapred.AvroKey;
 import org.apache.avro.mapred.AvroValue;
 import org.apache.avro.mapreduce.AvroJob;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -42,6 +43,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -53,6 +55,15 @@ import org.junit.rules.TemporaryFolder;
 public class TestKeyValueInput {
   @Rule
   public TemporaryFolder mTempDir = new TemporaryFolder();
+
+  private Configuration mConf;
+
+  @Before
+  public final void setup() {
+    mConf = new Configuration();
+    mConf.set("fs.defaultFS", "file:///");
+    mConf.set("mapred.job.tracker", "local");
+  }
 
   /**
    * Creates an Avro file of <docid, text> pairs to use for test input:
@@ -123,8 +134,8 @@ public class TestKeyValueInput {
     File inputFile = createInputFile();
 
     // Configure the job input.
-    Job job = new Job();
-    FileInputFormat.setInputPaths(job, new Path(inputFile.getAbsolutePath()));
+    Job job = new Job(mConf);
+    FileInputFormat.setInputPaths(job, new Path("file:" + inputFile.getAbsolutePath()));
     job.setInputFormatClass(AvroKeyValueInputFormat.class);
     AvroJob.setInputKeySchema(job, Schema.create(Schema.Type.INT));
     AvroJob.setInputValueSchema(job, Schema.create(Schema.Type.STRING));
@@ -142,14 +153,14 @@ public class TestKeyValueInput {
 
     // Configure the output format.
     job.setOutputFormatClass(AvroKeyValueOutputFormat.class);
-    Path outputPath = new Path(mTempDir.getRoot().getPath(), "out-index");
+    Path outputPath = new Path("file:" + mTempDir.getRoot().getPath(), "out-index");
     FileOutputFormat.setOutputPath(job, outputPath);
 
     // Run the job.
     assertTrue(job.waitForCompletion(true));
 
     // Verify that the output Avro container file as the expected data.
-    File avroFile = new File(outputPath.toString(), "part-r-00000.avro");
+    File avroFile = new File(outputPath.toUri().getPath(), "part-r-00000.avro");
     DatumReader<GenericRecord> datumReader = new SpecificDatumReader<GenericRecord>(
         AvroKeyValue.getSchema(Schema.create(Schema.Type.STRING),
             Schema.createArray(Schema.create(Schema.Type.INT))));

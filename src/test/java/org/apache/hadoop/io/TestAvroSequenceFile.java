@@ -17,9 +17,12 @@
 
 package org.apache.hadoop.io;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.avro.Schema;
@@ -28,6 +31,7 @@ import org.apache.avro.mapred.AvroValue;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,66 +43,75 @@ public class TestAvroSequenceFile {
   public TemporaryFolder mTempDir = new TemporaryFolder();
   // CHECKSTYLE:ON
 
+  private Configuration mConf;
+
+  @Before
+  public final void setup() {
+    mConf = new Configuration();
+    mConf.set("fs.defaultFS", "file:///");
+  }
+
   /** Tests that reading and writing avro data works. */
   @Test
   @SuppressWarnings("unchecked")
   public void testReadAvro() throws IOException {
-    Path sequenceFilePath = new Path(new File(mTempDir.getRoot(), "output.seq").getPath());
+    final Path sequenceFilePath = new Path("file:" + mTempDir.getRoot(), "output.seq");
 
     writeSequenceFile(sequenceFilePath, AvroKey.class, AvroValue.class,
         Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.INT),
         new AvroKey<CharSequence>("one"), new AvroValue<Integer>(1),
         new AvroKey<CharSequence>("two"), new AvroValue<Integer>(2));
 
-    Configuration conf = new Configuration();
-    FileSystem fs = FileSystem.get(conf);
+    FileSystem fs = FileSystem.get(mConf);
     AvroSequenceFile.Reader.Options options = new AvroSequenceFile.Reader.Options()
         .withFileSystem(fs)
         .withInputPath(sequenceFilePath)
         .withKeySchema(Schema.create(Schema.Type.STRING))
         .withValueSchema(Schema.create(Schema.Type.INT))
-        .withConfiguration(conf);
-    SequenceFile.Reader reader = new AvroSequenceFile.Reader(options);
+        .withConfiguration(mConf);
+    final SequenceFile.Reader reader = new AvroSequenceFile.Reader(options);
+    try {
+      AvroKey<CharSequence> key = new AvroKey<CharSequence>();
+      AvroValue<Integer> value = new AvroValue<Integer>();
 
-    AvroKey<CharSequence> key = new AvroKey<CharSequence>();
-    AvroValue<Integer> value = new AvroValue<Integer>();
+      // Read the first record.
+      key = (AvroKey<CharSequence>) reader.next(key);
+      assertNotNull(key);
+      assertEquals("one", key.datum().toString());
+      value = (AvroValue<Integer>) reader.getCurrentValue(value);
+      assertNotNull(value);
+      assertEquals(1, value.datum().intValue());
 
-    // Read the first record.
-    key = (AvroKey<CharSequence>) reader.next(key);
-    assertNotNull(key);
-    assertEquals("one", key.datum().toString());
-    value = (AvroValue<Integer>) reader.getCurrentValue(value);
-    assertNotNull(value);
-    assertEquals(1, value.datum().intValue());
+      // Read the second record.
+      key = (AvroKey<CharSequence>) reader.next(key);
+      assertNotNull(key);
+      assertEquals("two", key.datum().toString());
+      value = (AvroValue<Integer>) reader.getCurrentValue(value);
+      assertNotNull(value);
+      assertEquals(2, value.datum().intValue());
 
-    // Read the second record.
-    key = (AvroKey<CharSequence>) reader.next(key);
-    assertNotNull(key);
-    assertEquals("two", key.datum().toString());
-    value = (AvroValue<Integer>) reader.getCurrentValue(value);
-    assertNotNull(value);
-    assertEquals(2, value.datum().intValue());
-
-    assertNull("Should be no more records.", reader.next(key));
+      assertNull("Should be no more records.", reader.next(key));
+    } finally {
+      reader.close();
+    }
   }
 
   /** Tests that reading and writing avro records without a reader schema works. */
   @Test
   @SuppressWarnings("unchecked")
   public void testReadAvroWithoutReaderSchemas() throws IOException {
-    Path sequenceFilePath = new Path(new File(mTempDir.getRoot(), "output.seq").getPath());
+    final Path sequenceFilePath = new Path("file:" + mTempDir.getRoot(), "output.seq");
 
     writeSequenceFile(sequenceFilePath, AvroKey.class, AvroValue.class,
         Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.INT),
         new AvroKey<CharSequence>("one"), new AvroValue<Integer>(1),
         new AvroKey<CharSequence>("two"), new AvroValue<Integer>(2));
 
-    Configuration conf = new Configuration();
-    FileSystem fs = FileSystem.get(conf);
+    FileSystem fs = FileSystem.get(mConf);
     AvroSequenceFile.Reader.Options options = new AvroSequenceFile.Reader.Options()
         .withFileSystem(fs)
         .withInputPath(sequenceFilePath)
-        .withConfiguration(conf);
+        .withConfiguration(mConf);
     SequenceFile.Reader reader = new AvroSequenceFile.Reader(options);
 
     AvroKey<CharSequence> key = new AvroKey<CharSequence>();
@@ -126,18 +139,17 @@ public class TestAvroSequenceFile {
   /** Tests that reading and writing ordinary Writables still works. */
   @Test
   public void testReadWritables() throws IOException {
-    Path sequenceFilePath = new Path(new File(mTempDir.getRoot(), "output.seq").getPath());
+    final Path sequenceFilePath = new Path("file:" + mTempDir.getRoot(), "output.seq");
 
     writeSequenceFile(sequenceFilePath, Text.class, IntWritable.class, null, null,
         new Text("one"), new IntWritable(1),
         new Text("two"), new IntWritable(2));
 
-    Configuration conf = new Configuration();
-    FileSystem fs = FileSystem.get(conf);
+    FileSystem fs = FileSystem.get(mConf);
     AvroSequenceFile.Reader.Options options = new AvroSequenceFile.Reader.Options()
         .withFileSystem(fs)
         .withInputPath(sequenceFilePath)
-        .withConfiguration(conf);
+        .withConfiguration(mConf);
     SequenceFile.Reader reader = new AvroSequenceFile.Reader(options);
 
     Text key = new Text();
@@ -176,11 +188,10 @@ public class TestAvroSequenceFile {
     }
 
     // Open a AvroSequenceFile writer.
-    Configuration conf = new Configuration();
-    FileSystem fs = FileSystem.get(conf);
+    FileSystem fs = FileSystem.get(mConf);
     AvroSequenceFile.Writer.Options options = new AvroSequenceFile.Writer.Options()
         .withFileSystem(fs)
-        .withConfiguration(conf)
+        .withConfiguration(mConf)
         .withOutputPath(file);
     if (null != keySchema) {
       options.withKeySchema(keySchema);
