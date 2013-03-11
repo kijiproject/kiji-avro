@@ -30,6 +30,7 @@ import org.apache.avro.mapred.FsInput;
 import org.apache.avro.mapreduce.AvroJob;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.util.Utf8;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -44,6 +45,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -51,10 +53,20 @@ import org.junit.rules.TemporaryFolder;
 public class TestWordCount {
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
-  public static final Schema STATS_SCHEMA =
-      Schema.parse("{\"name\":\"stats\",\"type\":\"record\","
-          + "\"fields\":[{\"name\":\"count\",\"type\":\"int\"},"
-          + "{\"name\":\"name\",\"type\":\"string\"}]}");
+
+  private Configuration mConf;
+
+  @Before
+  public final void setup() {
+    mConf = new Configuration();
+    mConf.set("fs.defaultFS", "file:///");
+    mConf.set("mapred.job.tracker", "local");
+  }
+
+  public static final Schema STATS_SCHEMA = new Schema.Parser().parse(
+      "{\"name\":\"stats\",\"type\":\"record\","
+      + "\"fields\":[{\"name\":\"count\",\"type\":\"int\"},"
+      + "{\"name\":\"name\",\"type\":\"string\"}]}");
 
   private static class LineCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
     private IntWritable mOne;
@@ -158,11 +170,10 @@ public class TestWordCount {
 
   @Test
   public void testAvroGenericOutput() throws Exception {
-    Job job = new Job();
+    final Job job = new Job(mConf);
 
-    FileInputFormat.setInputPaths(job, new Path(getClass()
-            .getResource("/org/apache/avro/mapreduce/mapreduce-test-input.txt")
-            .toURI().toString()));
+    FileInputFormat.setInputPaths(job, new Path(
+        getClass().getResource("/org/apache/avro/mapreduce/mapreduce-test-input.txt").toURI()));
     job.setInputFormatClass(TextInputFormat.class);
 
     job.setMapperClass(LineCountMapper.class);
@@ -173,7 +184,7 @@ public class TestWordCount {
     AvroJob.setOutputKeySchema(job, STATS_SCHEMA);
 
     job.setOutputFormatClass(AvroKeyOutputFormat.class);
-    Path outputPath = new Path(tmpFolder.getRoot().getPath() + "/out-generic");
+    Path outputPath = new Path("file:" + tmpFolder.getRoot().getPath(), "out-generic");
     FileOutputFormat.setOutputPath(job, outputPath);
 
     Assert.assertTrue(job.waitForCompletion(true));
@@ -198,11 +209,10 @@ public class TestWordCount {
 
   @Test
   public void testAvroSpecificOutput() throws Exception {
-    Job job = new Job();
+    final Job job = new Job(mConf);
 
-    FileInputFormat.setInputPaths(job, new Path(getClass()
-            .getResource("/org/apache/avro/mapreduce/mapreduce-test-input.txt")
-            .toURI().toString()));
+    FileInputFormat.setInputPaths(job, new Path(
+        getClass().getResource("/org/apache/avro/mapreduce/mapreduce-test-input.txt").toURI()));
     job.setInputFormatClass(TextInputFormat.class);
 
     job.setMapperClass(LineCountMapper.class);
@@ -213,7 +223,7 @@ public class TestWordCount {
     AvroJob.setOutputKeySchema(job, TextStats.SCHEMA$);
 
     job.setOutputFormatClass(AvroKeyOutputFormat.class);
-    Path outputPath = new Path(tmpFolder.getRoot().getPath() + "/out-specific");
+    Path outputPath = new Path("file:" + tmpFolder.getRoot().getPath(), "out-specific");
     FileOutputFormat.setOutputPath(job, outputPath);
 
     Assert.assertTrue(job.waitForCompletion(true));
@@ -238,11 +248,10 @@ public class TestWordCount {
 
   @Test
   public void testAvroInput() throws Exception {
-    Job job = new Job();
+    final Job job = new Job(mConf);
 
-    FileInputFormat.setInputPaths(job, new Path(getClass()
-            .getResource("/org/apache/avro/mapreduce/mapreduce-test-input.avro")
-            .toURI().toString()));
+    FileInputFormat.setInputPaths(job, new Path(
+        getClass().getResource("/org/apache/avro/mapreduce/mapreduce-test-input.avro").toURI()));
     job.setInputFormatClass(AvroKeyInputFormat.class);
     AvroJob.setInputKeySchema(job, TextStats.SCHEMA$);
 
@@ -254,7 +263,7 @@ public class TestWordCount {
     AvroJob.setOutputKeySchema(job, TextStats.SCHEMA$);
 
     job.setOutputFormatClass(AvroKeyOutputFormat.class);
-    Path outputPath = new Path(tmpFolder.getRoot().getPath() + "/out-specific-input");
+    Path outputPath = new Path("file:" + tmpFolder.getRoot().getPath(), "out-specific-input");
     FileOutputFormat.setOutputPath(job, outputPath);
 
     Assert.assertTrue(job.waitForCompletion(true));
@@ -279,11 +288,10 @@ public class TestWordCount {
 
   @Test
   public void testAvroMapOutput() throws Exception {
-    Job job = new Job();
+    final Job job = new Job(mConf);
 
-    FileInputFormat.setInputPaths(job, new Path(getClass()
-            .getResource("/org/apache/avro/mapreduce/mapreduce-test-input.avro")
-            .toURI().toString()));
+    FileInputFormat.setInputPaths(job, new Path(
+        getClass().getResource("/org/apache/avro/mapreduce/mapreduce-test-input.avro").toURI()));
     job.setInputFormatClass(AvroKeyInputFormat.class);
     AvroJob.setInputKeySchema(job, TextStats.SCHEMA$);
 
@@ -295,7 +303,7 @@ public class TestWordCount {
     AvroJob.setOutputKeySchema(job, TextStats.SCHEMA$);
 
     job.setOutputFormatClass(AvroKeyOutputFormat.class);
-    Path outputPath = new Path(tmpFolder.getRoot().getPath() + "/out-specific-input");
+    Path outputPath = new Path("file:" + tmpFolder.getRoot().getPath(), "out-specific-input");
     FileOutputFormat.setOutputPath(job, outputPath);
 
     Assert.assertTrue(job.waitForCompletion(true));
