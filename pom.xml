@@ -37,7 +37,7 @@
 
     <avro.version>1.7.5</avro.version>
 
-    <hadoop.version>2.3.0-mr1-cdh5.0.3</hadoop.version>
+    <hadoop.version>2.3.0-cdh5.0.3</hadoop.version>
   </properties>
 
   <build>
@@ -100,13 +100,18 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
+      <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
     <dependency>
