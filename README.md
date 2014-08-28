@@ -1,6 +1,14 @@
 kiji-avro
 =========
 
+## Deprecated
+
+This library has been merged into Avro, and should no longer be used.
+Instead, use [avro-mapred](http://mvnrepository.com/artifact/org.apache.avro/avro-mapred).
+This library will not receive any more releases or bug fixes.
+
+### About
+
 Extensions to the [Apache Avro](http://avro.apache.org) project for
 working with [Apache Hadoop](http://hadoop.apache.org).  Many of the
 components in this project have been moved into the Avro project,
